@@ -28,7 +28,7 @@ else:
         login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri={st.secrets['redirectUri']}"
         st.header("Login to DocShelf")
         button = """
-        <a target="_self" href="{}">
+        <a href="{}">
             <button class="btn btn-primary">Login with Cognito</button>
         </a>
         """.format(login_url)
