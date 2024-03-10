@@ -27,7 +27,7 @@ else:
             st.error("Error exchanging code for tokens.")
             st.stop()
     else:
-        login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri=http://localhost:8501"
+        login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri={st.secrets['redirectUri']}"
         st.header("Login to DocShelf")
         st.button("Login via AWS", on_click=lambda: webbrowser.open(login_url))
         st.stop()
@@ -134,7 +134,7 @@ def main():
     if selected == 'Logout':
         st.write("Logging out...")
         st.session_state.clear()
-        webbrowser.open(f'https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri=http://localhost:8501?signout=true')
+        webbrowser.open(f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true")
         st.stop()
 
 if __name__ == "__main__":
