@@ -26,7 +26,11 @@ else:
     else:
         login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri={st.secrets['redirectUri']}"
         st.header("Login to DocShelf")
-        st.button("Login via AWS", on_click=lambda: webbrowser.open(login_url))
+        button = """
+        <a href="{}">
+            <button class="btn btn-primary">Login with Cognito</button>
+        </a>
+        """.format(login_url)
         st.stop()
 
 def main():
