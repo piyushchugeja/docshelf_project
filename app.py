@@ -6,7 +6,7 @@ from tokens import exchange_code_for_token
 from s3_operations import *
 from dynamo_operations import *
 
-st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", menu_items={"Get Help": None, "Report a bug": None, "About": None})
+st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", initial_sidebar_state="expanded")
 st.markdown("<head><link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'><link rel='stylesheet' href='https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/fonts/simple-line-icons/style.min.css'></head>", unsafe_allow_html=True)
 
 cognito = boto3.client('cognito-idp', region_name=st.secrets['awsRegion'], aws_access_key_id=st.secrets['accessKeyId'], aws_secret_access_key=st.secrets['awsSecretKey'])
