@@ -2,13 +2,37 @@ import streamlit as st
 import boto3
 import os
 from dotenv import load_dotenv
+from streamlit_option_menu import option_menu
+import webbrowser
+from tokens import exchange_code_for_token
 
 load_dotenv()
+st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", menu_items={"Get Help": None, "Report a bug": None, "About": None})
+
+cognito = boto3.client('cognito-idp', region_name=os.getenv('awsRegion'), aws_access_key_id=os.getenv('accessKeyId'), aws_secret_access_key=os.getenv('awsSecretKey'))
+user_pool_id = os.getenv('userPoolId')
+app_client_id = os.getenv('appClientId')
+
+if 'user_info' in st.session_state:
+    user_info = st.session_state['user_info']
+else:
+    if st.query_params and 'code' in st.query_params:
+        code = st.query_params['code']
+        user_info = exchange_code_for_token(code)
+        if user_info:
+            st.session_state['user_info'] = user_info
+        else:
+            st.error("Error exchanging code for tokens.")
+            st.stop()
+    else:
+        login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri=http://localhost:8501"
+        st.header("Login to DocShelf")
+        st.button("Login via AWS", on_click=lambda: webbrowser.open(login_url))
+        st.stop()
 
 # Initialize AWS S3 client
 s3 = boto3.client('s3', region_name=os.getenv('awsRegion'), aws_access_key_id=os.getenv('accessKeyId'), aws_secret_access_key=os.getenv('awsSecretKey'))
 bucket_name = os.getenv('awsBucketName')
-
 def upload_document_to_s3(file):
     try:
         s3.upload_fileobj(file, bucket_name, file.name)
@@ -44,11 +68,17 @@ def get_url_from_s3(file_key):
         st.error(f"Error getting URL from S3: {e}")
         return None
 
+def delete_from_s3(file_key):
+    try:
+        s3.delete_object(Bucket=bucket_name, Key=file_key)
+        return True
+    except Exception as e:
+        st.error(f"Error deleting file from S3: {e}")
+        return False
+
 def main():
-    st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide")
     st.markdown("<head><link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'><link rel='stylesheet' href='https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/fonts/simple-line-icons/style.min.css'></head>", unsafe_allow_html=True)
     st.title("DocShelf - Document Storage System")
-    
     icons = {
         'pdf': 'doc',
         'jpg': 'picture',
@@ -61,61 +91,95 @@ def main():
         'ppt': 'doc',
         'pptx': 'doc',
         'txt': 'notebook',
-        'mp4': 'film'
+        'mp4': 'film',
+        'avi': 'film',
+        'mkv': 'film',
+        'zip': 'folder-alt',
+        'rar': 'folder-alt',
+        'tar': 'folder-alt',
+        'gz': 'folder-alt',
     }
+
+    with st.sidebar:
+        st.write(f"Logged in as: {user_info['email']}")
+        selected = option_menu("Options",['Upload', 'Delete', 'View', 'Logout'], 
+        icons=['cloud-upload', 'trash3', 'eye', 'box-arrow-right'], menu_icon="list", default_index=0)
+        
+    if selected == 'Upload':
+        st.subheader("Upload Document")
+        uploaded_file = st.file_uploader("Choose a document to upload")
+
+        if uploaded_file is not None:
+            if st.button("Upload"):
+                if upload_document_to_s3(uploaded_file):
+                    st.success("Document uploaded successfully!")
+                else:
+                    st.error("Failed to upload document.")
     
-    # Sidebar for uploading document
-    st.sidebar.title("Upload Document")
-    uploaded_file = st.sidebar.file_uploader("Choose a document to upload")
-
-    if uploaded_file is not None:
-        if st.sidebar.button("Upload"):
-            if upload_document_to_s3(uploaded_file):
-                st.sidebar.success("Document uploaded successfully!")
-            else:
-                st.sidebar.error("Failed to upload document.")
-
-    # Main content area for listing documents
-    st.subheader("Uploaded Documents")
-    documents = list_documents_in_s3()
-    if documents:
-        total = len(documents)
-        rows = total // 3
-        remainder = total % 3
-        if remainder > 0:
-            rows += 1
-        for row in range(rows):
-            row_data = "<div class='row my-2'>"
-            for col in range(3):
-                idx = row * 3 + col
-                if idx < total:
-                    document = documents[idx]
-                    url = get_url_from_s3(document)
-                    document_name, document_type = document.split(".")
-                    row_data += f"""<div class="col-md-4">
-                        <div class="card">
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <div class="media d-flex">
-                                        <div class="align-self-center">
-                                            <i class="icon-{icons[document_type]} primary h3 float-left"></i> <br>
-                                            <span class="badge badge-secondary">{document_type.upper()}</span>
-                                        </div>
-                                        <div class="media-body text-right">
-                                            <h4>{document_name}</h4>
-                                            <a href="{url}" target="_blank">
-                                                <button class="btn btn-primary btn-sm">Download</button>
-                                            </a>
+    if selected == 'Delete':
+        st.subheader("Delete Document")
+        documents = list_documents_in_s3()
+        if documents:
+            document_to_delete = st.selectbox("Select document to delete", documents)
+            if st.button("Delete", type="primary"):
+                if delete_from_s3(document_to_delete):
+                    st.success("Document deleted successfully!")
+                else:
+                    st.error("Failed to delete document.")
+        else:
+            st.write("No documents uploaded yet.")
+                    
+    if selected == 'View':
+        st.subheader("Uploaded Documents")
+        documents = list_documents_in_s3()
+        if documents:
+            total = len(documents)
+            rows = total // 3
+            remainder = total % 3
+            if remainder > 0:
+                rows += 1
+            for row in range(rows):
+                row_data = "<div class='row my-2'>"
+                for col in range(3):
+                    idx = row * 3 + col
+                    if idx < total:
+                        document = documents[idx]
+                        url = get_url_from_s3(document)
+                        document_name, document_type = document.split(".")
+                        if document_type in icons:
+                            icon = icons[document_type]
+                        else:
+                            icon = "notebook"
+                        row_data += f"""<div class="col-md-4">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="media d-flex">
+                                            <div class="align-self-center">
+                                                <i class="icon-{icon} primary h3 float-left"></i> <br>
+                                                <span class="badge badge-secondary">{document_type.upper()}</span>
+                                            </div>
+                                            <div class="media-body text-right">
+                                                <h5>{document_name}</h5>
+                                                <a href="{url}" target="_blank">
+                                                    <button class="btn btn-primary btn-sm">Download</button>
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>"""
-            row_data += "</div>"
-            st.markdown(row_data, unsafe_allow_html=True)
-    else:
-        st.write("No documents uploaded yet.")
+                        </div>"""
+                row_data += "</div>"
+                st.markdown(row_data, unsafe_allow_html=True)
+        else:
+            st.write("No documents uploaded yet.")
+    
+    if selected == 'Logout':
+        st.write("Logging out...")
+        st.session_state.clear()
+        webbrowser.open(f'https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri=http://localhost:8501?signout=true')
+        st.stop()
 
 if __name__ == "__main__":
     main()
