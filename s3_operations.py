@@ -2,7 +2,7 @@ import boto3
 import streamlit as st
 # Initialize AWS S3 client
 s3 = boto3.client('s3',  region_name=st.secrets['awsRegion'], aws_access_key_id=st.secrets['accessKeyId'], aws_secret_access_key=st.secrets['awsSecretKey'])
-bucket_name = st.secrets['bucketName']
+bucket_name = st.secrets['awsBucketName']
 
 def upload_document_to_s3(file):
     try:
