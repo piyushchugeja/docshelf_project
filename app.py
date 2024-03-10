@@ -7,6 +7,7 @@ from s3_operations import *
 from dynamo_operations import *
 
 st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", menu_items={"Get Help": None, "Report a bug": None, "About": None})
+st.markdown("<head><link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'><link rel='stylesheet' href='https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/fonts/simple-line-icons/style.min.css'></head>", unsafe_allow_html=True)
 
 cognito = boto3.client('cognito-idp', region_name=st.secrets['awsRegion'], aws_access_key_id=st.secrets['accessKeyId'], aws_secret_access_key=st.secrets['awsSecretKey'])
 user_pool_id = st.secrets['userPoolId']
@@ -27,7 +28,7 @@ else:
         login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri={st.secrets['redirectUri']}"
         st.header("Login to DocShelf")
         button = """
-        <a href="{}">
+        <a target="_self" href="{}">
             <button class="btn btn-primary">Login with Cognito</button>
         </a>
         """.format(login_url)
@@ -35,7 +36,6 @@ else:
         st.stop()
 
 def main():
-    st.markdown("<head><link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'><link rel='stylesheet' href='https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/fonts/simple-line-icons/style.min.css'></head>", unsafe_allow_html=True)
     st.title("DocShelf - Document Storage System")
     icons = {
         'pdf': 'doc',
@@ -136,6 +136,7 @@ def main():
     if selected == 'Logout':
         st.write("Logging out...")
         st.session_state.clear()
+        # redirect('https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={}&logout_uri={}?signout=true'.format(app_client_id, st.secrets['redirectUri']))
         webbrowser.open(f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true")
         st.stop()
 
