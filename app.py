@@ -11,9 +11,9 @@ from dynamo_operations import *
 load_dotenv()
 st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", menu_items={"Get Help": None, "Report a bug": None, "About": None})
 
-cognito = boto3.client('cognito-idp', region_name=os.getenv('awsRegion'), aws_access_key_id=os.getenv('accessKeyId'), aws_secret_access_key=os.getenv('awsSecretKey'))
-user_pool_id = os.getenv('userPoolId')
-app_client_id = os.getenv('appClientId')
+cognito = boto3.client('cognito-idp', region_name=st.secrets['awsRegion'], aws_access_key_id=st.secrets['accessKeyId'], aws_secret_access_key=st.secrets['awsSecretKey'])
+user_pool_id = st.secrets['userPoolId']
+app_client_id = st.secrets['appClientId']
 
 if 'user_info' in st.session_state:
     user_info = st.session_state['user_info']
