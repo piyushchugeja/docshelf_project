@@ -60,8 +60,16 @@ def main():
 
     with st.sidebar:
         st.write(f"Logged in as: {user_info['email']}")
-        selected = option_menu("Options",['View', 'Upload', 'Delete', 'Logout'], 
-        icons=['eye', 'cloud-upload', 'trash3', 'box-arrow-right'], menu_icon="list", default_index=0)
+        selected = option_menu("Options",['View', 'Upload', 'Delete'], 
+        icons=['eye', 'cloud-upload', 'trash3'], menu_icon="list", default_index=0)
+        logout_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true"
+        logout_button = """
+        <a href="{}">
+            <button class="btn btn-danger">Logout</button>
+        </a>
+        """.format(logout_url)
+        st.markdown(logout_button, unsafe_allow_html=True)
+
         
     if selected == 'Upload':
         st.subheader("Upload Document")
@@ -133,12 +141,12 @@ def main():
         else:
             st.write("No documents uploaded yet.")
     
-    if selected == 'Logout':
-        st.write("Logging out...")
-        st.session_state.clear()
-        # redirect('https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={}&logout_uri={}?signout=true'.format(app_client_id, st.secrets['redirectUri']))
-        webbrowser.open(f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true")
-        st.stop()
+    # if selected == 'Logout':
+    #     st.write("Logging out...")
+    #     st.session_state.clear()
+    #     # redirect('https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={}&logout_uri={}?signout=true'.format(app_client_id, st.secrets['redirectUri']))
+    #     webbrowser.open(f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true")
+    #     st.stop()
 
 if __name__ == "__main__":
     main()
