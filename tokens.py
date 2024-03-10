@@ -1,10 +1,8 @@
 import requests
 import jwt
-from dotenv import load_dotenv
-import os
+import streamlit as st
 
-load_dotenv()
-app_client_id = os.getenv('appClientId')
+app_client_id = st.secrets["appClientId"]
 
 def exchange_code_for_token(authorization_code):
     global app_client_id
@@ -13,7 +11,7 @@ def exchange_code_for_token(authorization_code):
         "grant_type": "authorization_code",
         "client_id": app_client_id,
         "code": authorization_code,
-        "redirect_uri": "http://localhost:8501"
+        "redirect_uri": st.secrets["redirectUri"]
     }
     response = requests.post(token_url, data=params)
 

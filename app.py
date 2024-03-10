@@ -1,13 +1,11 @@
 import streamlit as st
 import boto3
-import os
 from streamlit_option_menu import option_menu
 import webbrowser
 from tokens import exchange_code_for_token
 from s3_operations import *
 from dynamo_operations import *
 
-load_dotenv()
 st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", menu_items={"Get Help": None, "Report a bug": None, "About": None})
 
 cognito = boto3.client('cognito-idp', region_name=st.secrets['awsRegion'], aws_access_key_id=st.secrets['accessKeyId'], aws_secret_access_key=st.secrets['awsSecretKey'])

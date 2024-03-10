@@ -1,9 +1,5 @@
 import boto3
-import os
 import streamlit as st
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Initialize AWS DyanmoDB
 dynamodb = boto3.resource('dynamodb',  region_name=st.secrets['awsRegion'], aws_access_key_id=st.secrets['accessKeyId'], aws_secret_access_key=st.secrets['awsSecretKey'])
