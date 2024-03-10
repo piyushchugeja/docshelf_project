@@ -1,7 +1,6 @@
 import streamlit as st
 import boto3
 import os
-from dotenv import load_dotenv
 from streamlit_option_menu import option_menu
 import webbrowser
 from tokens import exchange_code_for_token
