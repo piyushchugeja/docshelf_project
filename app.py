@@ -114,11 +114,11 @@ def main():
                                     <div class="card-body">
                                         <div class="media d-flex">
                                             <div class="align-self-center">
-                                                <i class="icon-{icon} primary h3 float-left"></i> <br>
+                                                <i class="icon-{icon} primary h3 float-left text-dark"></i> <br>
                                                 <span class="badge badge-secondary">{document_type.upper()}</span>
                                             </div>
                                             <div class="media-body text-right">
-                                                <h5>{document_name}</h5>
+                                                <h5 class="text-dark">{document_name}</h5>
                                                 <a href="{url}" target="_blank">
                                                     <button class="btn btn-primary btn-sm">Download</button>
                                                 </a>
