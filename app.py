@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from streamlit_option_menu import option_menu
 import webbrowser
 from tokens import exchange_code_for_token
+from s3_operations import *
+from dynamo_operations import *
 
 load_dotenv()
 st.set_page_config(page_title="DocShelf", page_icon=":file_folder:", layout="wide", menu_items={"Get Help": None, "Report a bug": None, "About": None})
@@ -29,52 +31,6 @@ else:
         st.header("Login to DocShelf")
         st.button("Login via AWS", on_click=lambda: webbrowser.open(login_url))
         st.stop()
-
-# Initialize AWS S3 client
-s3 = boto3.client('s3', region_name=os.getenv('awsRegion'), aws_access_key_id=os.getenv('accessKeyId'), aws_secret_access_key=os.getenv('awsSecretKey'))
-bucket_name = os.getenv('awsBucketName')
-def upload_document_to_s3(file):
-    try:
-        s3.upload_fileobj(file, bucket_name, file.name)
-        return True
-    except Exception as e:
-        st.error(f"Error uploading document: {e}")
-        return False
-
-def list_documents_in_s3():
-    try:
-        response = s3.list_objects_v2(Bucket=bucket_name)
-        documents = [obj['Key'] for obj in response.get('Contents', [])]
-        return documents
-    except Exception as e:
-        st.error(f"Error listing documents: {e}")
-        return []
-
-def get_file_from_s3(file_key):
-    try:
-        response = s3.get_object(Bucket=bucket_name, Key=file_key)
-        file_content = response['Body'].read()
-        file_type = response['ContentType']
-        return file_content, file_type
-    except Exception as e:
-        st.error(f"Error downloading file from S3: {e}")
-        return None
-
-def get_url_from_s3(file_key):
-    try:
-        url = s3.generate_presigned_url('get_object', Params={'Bucket': bucket_name, 'Key': file_key})
-        return url
-    except Exception as e:
-        st.error(f"Error getting URL from S3: {e}")
-        return None
-
-def delete_from_s3(file_key):
-    try:
-        s3.delete_object(Bucket=bucket_name, Key=file_key)
-        return True
-    except Exception as e:
-        st.error(f"Error deleting file from S3: {e}")
-        return False
 
 def main():
     st.markdown("<head><link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'><link rel='stylesheet' href='https://pixinvent.com/stack-responsive-bootstrap-4-admin-template/app-assets/fonts/simple-line-icons/style.min.css'></head>", unsafe_allow_html=True)
@@ -102,8 +58,8 @@ def main():
 
     with st.sidebar:
         st.write(f"Logged in as: {user_info['email']}")
-        selected = option_menu("Options",['Upload', 'Delete', 'View', 'Logout'], 
-        icons=['cloud-upload', 'trash3', 'eye', 'box-arrow-right'], menu_icon="list", default_index=0)
+        selected = option_menu("Options",['View', 'Upload', 'Delete', 'Logout'], 
+        icons=['eye', 'cloud-upload', 'trash3', 'box-arrow-right'], menu_icon="list", default_index=0)
         
     if selected == 'Upload':
         st.subheader("Upload Document")
@@ -111,18 +67,18 @@ def main():
 
         if uploaded_file is not None:
             if st.button("Upload"):
-                if upload_document_to_s3(uploaded_file):
+                if upload_document_to_s3(uploaded_file) and put_item(user_info['email'], uploaded_file.name, uploaded_file.type):
                     st.success("Document uploaded successfully!")
                 else:
                     st.error("Failed to upload document.")
     
     if selected == 'Delete':
         st.subheader("Delete Document")
-        documents = list_documents_in_s3()
+        documents = get_items(user_info['email'])
         if documents:
             document_to_delete = st.selectbox("Select document to delete", documents)
             if st.button("Delete", type="primary"):
-                if delete_from_s3(document_to_delete):
+                if delete_from_s3(document_to_delete) and delete_item(user_info['email'], document_to_delete):
                     st.success("Document deleted successfully!")
                 else:
                     st.error("Failed to delete document.")
@@ -131,7 +87,7 @@ def main():
                     
     if selected == 'View':
         st.subheader("Uploaded Documents")
-        documents = list_documents_in_s3()
+        documents = get_items(user_info['email'])
         if documents:
             total = len(documents)
             rows = total // 3
