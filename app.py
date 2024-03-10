@@ -31,6 +31,7 @@ else:
             <button class="btn btn-primary">Login with Cognito</button>
         </a>
         """.format(login_url)
+        st.markdown(button, unsafe_allow_html=True)
         st.stop()
 
 def main():
