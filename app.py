@@ -1,7 +1,7 @@
+import re
 import streamlit as st
 import boto3
 from streamlit_option_menu import option_menu
-import webbrowser
 from tokens import exchange_code_for_token
 from s3_operations import *
 from dynamo_operations import *
@@ -13,6 +13,17 @@ cognito = boto3.client('cognito-idp', region_name=st.secrets['awsRegion'], aws_a
 user_pool_id = st.secrets['userPoolId']
 app_client_id = st.secrets['appClientId']
 
+def render_login():
+    login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri={st.secrets['redirectUri']}"
+    st.header("Login to DocShelf")
+    button = """
+    <a href="{}">
+        <button class="btn btn-primary">Login with Cognito</button>
+    </a>
+    """.format(login_url)
+    st.markdown(button, unsafe_allow_html=True)
+    st.stop()
+
 if 'user_info' in st.session_state:
     user_info = st.session_state['user_info']
 else:
@@ -22,19 +33,11 @@ else:
         if user_info:
             st.session_state['user_info'] = user_info
         else:
-            st.error("Error exchanging code for tokens.")
+            st.error("Error exchanging code for tokens. Please try again.")
+            render_login()
             st.stop()
     else:
-        login_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/login?response_type=code&client_id={app_client_id}&redirect_uri={st.secrets['redirectUri']}"
-        st.header("Login to DocShelf")
-        button = """
-        <a href="{}">
-            <button class="btn btn-primary">Login with Cognito</button>
-        </a>
-        """.format(login_url)
-        st.markdown(button, unsafe_allow_html=True)
-        st.stop()
-
+        render_login()
 def main():
     st.title("DocShelf - Document Storage System")
     icons = {
@@ -60,8 +63,8 @@ def main():
 
     with st.sidebar:
         st.write(f"Logged in as: {user_info['email']}")
-        selected = option_menu("Options",['View', 'Upload', 'Delete'], 
-        icons=['eye', 'cloud-upload', 'trash3'], menu_icon="list", default_index=0)
+        selected = option_menu("Options",['View', 'Upload', 'Delete', 'Logout'], 
+        icons=['eye', 'cloud-upload', 'trash3', 'eye'], menu_icon="list", default_index=0)
         logout_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true"
         logout_button = """
         <a href="{}">
@@ -116,7 +119,7 @@ def main():
                             icon = icons[document_type]
                         else:
                             icon = "notebook"
-                        row_data += f"""<div class="col-md-4">
+                        row_data += f"""<div class="col-md-4 col-sm-12">
                             <div class="card">
                                 <div class="card-content">
                                     <div class="card-body">
@@ -139,14 +142,7 @@ def main():
                 row_data += "</div>"
                 st.markdown(row_data, unsafe_allow_html=True)
         else:
-            st.write("No documents uploaded yet.")
-    
-    # if selected == 'Logout':
-    #     st.write("Logging out...")
-    #     st.session_state.clear()
-    #     # redirect('https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={}&logout_uri={}?signout=true'.format(app_client_id, st.secrets['redirectUri']))
-    #     webbrowser.open(f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true")
-    #     st.stop()
+            st.write("No documents uploaded yet.")        
 
 if __name__ == "__main__":
     main()
