@@ -20,7 +20,7 @@ pip install -r requirements.txt
 ```
 
 ## Usage
-1. Set up your AWS credentials and region in the `.env` file.
+1. Set up your AWS credentials and region in the `.streamlit/secrets.toml` file.
 ```python
 awsRegion=<Your AWS Region>
 accessKeyId=<Your AWS Access Key ID>
@@ -28,6 +28,7 @@ awsSecretKey=<Your AWS Secret Access Key>
 userPoolId=<Your AWS Cognito User Pool ID>
 appClientId=<Your AWS Cognito App Client ID>
 redirectUri=<Your Redirect URI>
+awsBucketName=<Your AWS S3 Bucket Name>
 ```
 
 2. Run the application:

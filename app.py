@@ -1,4 +1,3 @@
-import re
 import streamlit as st
 import boto3
 from streamlit_option_menu import option_menu
@@ -38,6 +37,7 @@ else:
             st.stop()
     else:
         render_login()
+        
 def main():
     st.title("DocShelf - Document Storage System")
     icons = {
