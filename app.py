@@ -63,8 +63,8 @@ def main():
 
     with st.sidebar:
         st.write(f"Logged in as: {user_info['email']}")
-        selected = option_menu("Options",['View', 'Upload', 'Delete', 'Logout'], 
-        icons=['eye', 'cloud-upload', 'trash3', 'eye'], menu_icon="list", default_index=0)
+        selected = option_menu("Options",['View', 'Upload', 'Delete'], 
+        icons=['eye', 'cloud-upload', 'trash3'], menu_icon="list", default_index=0)
         logout_url = f"https://docshelf.auth.us-east-1.amazoncognito.com/logout?client_id={app_client_id}&logout_uri={st.secrets['redirectUri']}?signout=true"
         logout_button = """
         <a href="{}">
