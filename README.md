@@ -10,6 +10,10 @@ DocShelf is a document storage system built with Python, Streamlit, and AWS serv
 - Delete documents from AWS S3 and DynamoDB
 - Logout
 
+## Block diagram of system
+<img src="https://github.com/piyushchugeja/docshelf_project/assets/66639966/1f67682e-f832-4eca-b592-dfd432fe907d" width="650px"/>
+
+
 ## Installation
 
 1. Clone the repository
